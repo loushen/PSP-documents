@@ -1,0 +1,281 @@
+﻿
+-----------------------------------------------------------------------------------
+
+代码格式说明：
+
+首先应该知道的一点，
+CM里输入数字的时候,一般都可以按□在16进制和10进制数字显示之间切换
+
+锁定的使用:
+只要某行代码属性是非锁定,则该行代码不会执行.
+当前行是D码或者E码行非锁定的话,就跳过后续n行.
+指针6码行非锁定的话,则跳过若干行(具体看6码书写规则).
+
+
+字节类型的选择:
+CW码因为字节数根据金手指代码语法即可判断,所以CW码行的字节类型选自动即可.
+CM码,则根据自己要求选择,一般自动也可以满足要求.
+
+
+
+
+
+------------------------------------------------------------------------------------
+支持以下金手指代码,cw代码基本上拿过来就可用
+数字一律16进制
+
+
+
+最简单的,直写码
+
+0aaaaaaa 0x000000dd
+将地址aaaaaaa处数据改为dd
+
+1aaaaaaa 0x0000dddd
+将地址aaaaaaa处数据改为dddd
+写入地址必须是偶数
+
+2aaaaaaa 0xdddddddd
+将地址aaaaaaa处数据改为dddddddd
+写入地址必须是4的倍数
+
+
+
+压缩码,比较有用
+
+8aaaaaaa nnnnmmmm
+000000dd 000000ss
+从aaaaaaa地址开始，每增加mmmm的地址，就修改这个地址处的数据
+写入数据dd为基数，每次递增ss，共修改nnnn条
+
+8aaaaaaa nnnnmmmm
+1000dddd 0000ssss
+从aaaaaaa地址开始，每增加mmmm*2的地址，就修改这个地址处的数据
+数据dddd为基数，每次递增ssss，共修改nnnn条
+写入地址必须是偶数
+
+4aaaaaaa nnnnmmmm
+dddddddd ssssssss
+从aaaaaaa地址开始，每增加mmmm*4的地址，就修改这个地址处的数据
+写入数据dddddddd为基数，每次递增ssssssss，共修改nnnn条
+写入地址必须是4的倍数
+
+
+
+条件码,也很有用
+
+Daaaaaaa 200000dd
+当地址aaaaaaa处数据等于dd时,执行下一条密码,否则跳过
+Daaaaaaa 201000dd
+当地址aaaaaaa处数据不等于dd时,执行下一条密码,否则跳过
+Daaaaaaa 202000dd
+当地址aaaaaaa处数据小于dd时,执行下一条密码,否则跳过
+Daaaaaaa 203000dd
+当地址aaaaaaa处数据大于dd时,执行下一条密码,否则跳过
+
+Daaaaaaa 0000dddd
+当地址aaaaaaa处数据等于dddd时,执行下一条密码,否则跳过
+地址必须是偶数
+Daaaaaaa 0010dddd
+当地址aaaaaaa处数据不等于dddd时,执行下一条密码,否则跳过
+地址必须是偶数
+Daaaaaaa 0020dddd
+当地址aaaaaaa处数据小于dddd时,执行下一条密码,否则跳过
+地址必须是偶数
+Daaaaaaa 0030dddd
+当地址aaaaaaa处数据大于dddd时,执行下一条密码,否则跳过
+地址必须是偶数
+
+
+0xDaaaaaaa 0x4bbbbbbb
+0xnnnnnnnn 0x0000000(0)
+0xXXXXXXXX 0xYYYYYYYY （起始行）
+※當地址aaaaaaa上的値等於地址aaaaaaa上的則從起始行開始連續執行nnnnnnnn行碼，否則跳過這些碼不執行。
+括號内的數字決定兩個地址上的比較値的類型，0表示單字節（8-bit）、1表示雙字節（16-bit）、2表示四字節（32-bit）。
+
+0xDaaaaaaa 0x5bbbbbbb
+0xnnnnnnnn 0x0000000(0)
+0xXXXXXXXX 0xYYYYYYYY （起始行）
+※這個是作不等於的運算。
+
+0xDaaaaaaa 0x6bbbbbbb
+0xnnnnnnnn 0x0000000(0)
+0xXXXXXXXX 0xYYYYYYYY （起始行）
+※這個是作小於的運算。
+
+0xDaaaaaaa 0x7bbbbbbb
+0xnnnnnnnn 0x0000000(0)
+0xXXXXXXXX 0xYYYYYYYY （起始行）
+※這個是作大於的運算。
+
+
+
+下面这个条件码可以嵌套
+E0nndddd 0aaaaaaa
+当地址aaaaaaa数据等于dddd时,执行下nn条密码,否则跳过
+地址必须是偶数
+E0nndddd 1aaaaaaa
+当地址aaaaaaa数据不等于dddd时,执行下nn密码,否则跳过
+地址必须是偶数
+E0nndddd 2aaaaaaa
+当地址aaaaaaa数据小于dddd时,执行下nn密码,否则跳过
+地址必须是偶数
+E0nndddd 3aaaaaaa
+当地址aaaaaaa数据大于dddd时,执行下nn密码,否则跳过
+地址必须是偶数
+
+E1nn00dd 0aaaaaaa
+当地址aaaaaaa数据等于dd时,执行下nn条密码,否则跳过
+E1nn00dd 1aaaaaaa
+当地址aaaaaaa数据不等于dd时,执行下nn密码,否则跳过
+E1nn00dd 2aaaaaaa
+当地址aaaaaaa数据小于dd时,执行下nn密码,否则跳过
+E1nn00dd 3aaaaaaa
+当地址aaaaaaa数据大于dd时,执行下nn密码,否则跳过
+
+
+
+复制码
+5aaaaaaa nnnnnnnn
+bbbbbbbb 00000000
+将aaaaaaa地址处数据拷贝nnnnnnnn字节到bbbbbbbb地址处
+
+
+
+逻辑运算码
+
+单字节/8 bits
+0x7aaaaaaa 0x000000bb
+将aaaaaaa地址上的数値作或运算，由bb决定哪些比特作比较。
+
+0x7aaaaaaa 0x000200bb
+将aaaaaaa地址上的数値作与运算，由bb决定哪些比特作比较。
+
+0x7aaaaaaa 0x000400bb
+将aaaaaaa地址上的数値作非运算，由bb决定哪些比特作比较。
+
+双字节/16 bits
+0x7aaaaaaa 0x0001bbbb
+将aaaaaaa地址上的数値作或运算，由bbbb决定哪些比特作比较
+地址必须是偶数
+0x7aaaaaaa 0x0003bbbb
+将aaaaaaa地址上的数値作与运算，由bbbb决定哪些比特作比较
+地址必须是偶数
+0x7aaaaaaa 0x0005bbbb
+将aaaaaaa地址上的数値作非运算，由bbbb决定哪些比特作比较
+地址必须是偶数
+
+
+加减码
+
+单字节/8 bits
+0x301000nn 0x0aaaaaaa
+将aaaaaaa地址上的数値每经过一帧就增加nn。
+
+0x302000nn 0x0aaaaaaa
+将aaaaaaa地址上的数値每经过一帧就减去nn。
+
+双字节/16 bits
+0x3030nnnn 0x0aaaaaaa
+将aaaaaaa地址上的数値每经过一帧就增加nnnn，地址必须是偶数
+
+0x3040nnnn 0x0aaaaaaa
+将aaaaaaa地址上的数値每经过一帧就减去nnnn，地址必须是偶数
+
+四字节/32 bits
+0x30500000 0x0aaaaaaa
+0xnnnnnnnn 0x00000000
+将aaaaaaa地址上的数値每经过一帧就增加nnnnnnnn，写入地址必须是4的倍数
+
+0x30600000 0x0aaaaaaa
+0xnnnnnnnn 0x00000000
+将aaaaaaa地址上的数値每经过一帧就减去nnnnnnnn，写入地址必须是4的倍数
+
+这些码可以把地址上的原数値作加减法运算，加减的速度非常快，通常要配合条件码使用。
+
+
+
+键位码
+D00000dd 1nnnnnnn
+当键位值等于nnnnnnn时执行该行代码下的dd+1行代码，否则跳过dd+1行代码。
+反向键位码
+D00000dd 3nnnnnnn
+当键位值等于nnnnnnn时跳过下面dd+1行代码，否则执行下面dd+1行代码。
+
+
+每个按键对应的键位値如下：
+Button  Code
+SELECT 0x00000001
+START 0x00000008
+DPAD UP 0x00000010
+DPAD RIGHT 0x00000020
+DPAD DOWN 0x00000040
+DPAD LEFT 0x00000080
+L TRIGGER 0x00000100
+R TRIGGER 0x00000200
+TRIANGLE 0x00001000
+CIRCLE 0x00002000
+CROSS 0x00004000
+SQUARE 0x00008000
+HOME 0x00010000
+HOLD 0x00020000
+NOTE 0x00800000
+SCREEN 0x00400000
+VOLUME UP 0x00100000
+VOLUME DOWN 0x00200000
+WLAN UP 0x00040000
+REMOTE HOLD 0x00080000
+如果想配組合鍵的話可以将每個按鍵的值相加
+支持嵌套
+
+
+
+
+指针码
+适用于某些每次变化,动态分配的内存数值
+反正想做这个码的人会自己研究,用的人直接输入,这里不详细说明了
+8位+
+0x6aaaaaaa 0x000000vv
+0x0000nnnn 0xiiiiiiii
+16位+
+0x6aaaaaaa 0x0000vvvv
+0x0001nnnn 0xiiiiiiii
+32位+
+0x6aaaaaaa 0xvvvvvvvv
+0x0002nnnn 0xiiiiiiii
+8位-
+0x6aaaaaaa 0x000000vv
+0x0003nnnn 0xiiiiiiii
+16位-
+0x6aaaaaaa 0x000000vv
+0x0004nnnn 0xiiiiiiii
+32位-
+0x6aaaaaaa 0x000000vv
+0x0005nnnn 0xiiiiiiii
+
+
+多级指针
+0x6aaaaaaa 0xvvvvvvvv
+0xqqqynnnn 0xbbbbbbbb
+0x2ccccccc 0x3ddddddd
+……
+
+aaaaaaa還是最原始的base，vvvvvvvv是value，y是指針類型決定了value的數據類型以及bbbbbbbb是正向還是逆向的。
+nnnn〉1時判斷下面的附加行是甚麼數字開頭的，1開頭的是之前的指針複製碼，9開頭的是之前的指針壓縮碼，2或3開頭的就是多級指針碼。
+如果是多級指針碼的話那qqq部分必須是000，ccccccc是1級offset，ddddddd是2級offset，後面依次類推，而bbbbbbbb是末級offset，也就是最後將要寫入vvvvvvvv時的那個offset。
+附加行中開頭的2表示ccccccc是正向offset，開頭的3表示ddddddd是逆向offset。
+
+擧兩個戰神的例子：
+鎖mp
+[[[0x60346B00]+0xA8]+0x68]+0x64
+
+0x60346B00 0x43480000
+0x00020003 0x00000064
+0x200000A8 0x20000068
+因爲末級offset是0x64而且是正向的所以bbbbbbbb部分是0x00000064，y部分是2（因爲鎖32bit數據）；0xA8是1級offset而且是正向的所以附加行開頭就是0x200000A8；2級offset是0x68就是0x20000068。
+
+
+
+
+可参考这里有cw格式代码介绍,感谢alexwong
+http://bbs.a9vg.com/read.php?tid=648929&fpage=1
